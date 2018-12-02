@@ -1,20 +1,20 @@
 {
-"dbms" :{"oracle": {"username" : "GestorDades",
+"dbms" :{"oracle": {"username" : "gestor_de_dades",
 			"sid": "ee.oracle.docker",
 			"servers":{ "0": { "ssh" : {"username": "student",
 										"hostname": "dcccluster.uab.es",
- 										"port": "52400"},
-							"hostname" : "oracle-1.docent00.gabd",
+ 										"port": "52324"},
+							"hostname" : "oracle-1.grup08.gabd",
 							"port" : "1521"
 					}
 			}
 		},
-		"mongodb": {"username" : "developer",
+		"mongodb": {"username" : "desenvolupador",
 			"db": "outliers",
 			"servers":{ "0": { "ssh" : {"username": "student",
 										"hostname": "dcccluster.uab.es",
- 										"port": "52400"},
-							"hostname" : "main.docent00.gabd",
+ 										"port": "52324"},
+							"hostname" : "main.grup08.gabd",
 							"port" : "27017"
 					}
 			}}
