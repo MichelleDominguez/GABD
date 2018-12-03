@@ -1,6 +1,6 @@
 {
-"dbms" :{"oracle": {"username" : "detector_de_outliers",
-			"password": "contradetector",
+"dbms" :{"oracle": {"username" : "desenvolupador",
+			"password": "contradesenvolupador",
 			"sid": "ee.oracle.docker",
 			"servers":{ "0": { "ssh" : {"username": "student", 
 						"hostname": "dcccluster.uab.es",
@@ -10,8 +10,8 @@
 			}
 			}
 		},
-		"mongodb": {"username" : "detector_de_outliers",
-			"password": "contradetector",
+		"mongodb": {"username" : "desenvolupador",
+			"password": "contradesenvolupador",
 			"db": "outliers",
 			"servers":{ "0": { "ssh" : {"username": "student",
 						"hostname": "dcccluster.uab.es",

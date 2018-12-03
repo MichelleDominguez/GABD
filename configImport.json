@@ -1,5 +1,5 @@
 {
-"dbms" :{"oracle": {"username" : "gestor_de_dades",
+"dbms" :{"oracle": {"username" : "desenvolupador",
 			"sid": "ee.oracle.docker",
 			"servers":{ "0": { "ssh" : {"username": "student",
 										"hostname": "dcccluster.uab.es",
