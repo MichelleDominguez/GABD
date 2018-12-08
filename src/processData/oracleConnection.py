@@ -430,9 +430,8 @@ class oracleConnexion(nc.noConnexion):
             id = row.id
             label = str(row.label)  # classe
             feature = str(row.feature)
-            print "id: "+str(id)+ " dades: "+feature+ " classe: "+label
-            query = "insert into 'UCI' ('ID','DADES','CLASSE') values({},{},{})".format(id, feature, label)
-            self.cursor.execute(query).fetchone()
+            query = 'insert into UCI(ID,DADES,CLASSE) values (:1,:2,:3)'
+            self.cursor.execute(query, (id,feature,label))
 
         self.commit()
 
