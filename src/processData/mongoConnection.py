@@ -148,10 +148,10 @@ class mongoConnexion(nc.noConnexion):
     """
     Comprovem si el nombre de classes del dataset està en params o no
     """
-    if "k" in params:
+    if "k" in datasetParams:
         #TODO: Haureu de guardar aquesta informació a la BD
-        print("k: {}".format(params["k"]))
-        k=params["k"]
+        print("k: {}".format(datasetParams["k"]))
+        k=datasetParams["k"]
     else:
         #TODO: Haureu de guardar la informació de la BD sense la inforamció de la K (numero de classes)
         print("Haureu de guardar la informació de la BD sense la inforamció de la K (numero de classes)")
@@ -184,12 +184,12 @@ class mongoConnexion(nc.noConnexion):
     """
     Caldra guardar la informació a la BD segons l'estructura que hagueu decidit
     """
-    collection = self.bd["Mostres"]
+    collection = self.bd["Dades"]
     for row in features:
         #TODO: insereu les dades
-        collection.update({"Dataset":nameDataset, "id":row.id},{"Dataset":nameDataset, "id":row.id,"features":row.features, "label":row.label}, upsert=True)
+        collection.update({"Dataset":nameDataset, "id":row.id},{"Dataset":nameDataset, "id":row.id,"dades":row.features, "classe":row.label}, upsert=True)
 
-    self.bd["Datasets"].insert_one({"name":nameDataset,"total":id,"type":"vector"})
+    self.bd["Datasets"].insert_one({"nom":nameDataset,"total":id,"tipus":"vector"})
 
 
   def insertImageDataset(self, dataset, fileName, params, labels='anno', imageExt='.jpg', labelsExt='.txt'):
@@ -211,19 +211,19 @@ class mongoConnexion(nc.noConnexion):
     """
     El següent bucle recorre la carpeta de imatges i extreu la id de la imatge a partir del nom
     """
-    collection = self.bd["Mostres"]
+    collection = self.bd["Dades"]
     listImages = glob.glob(dirImages + '/*' + imageExt)
     for imageName in listImages:
         nom, _ = os.path.splitext(os.path.basename(imageName))
         match = re.search(r'im(?P<id>\d+)', nom)
 
-        data = {'name': nom, 'image_id': int(match.group('id'))}
+        data = {'nom': nom, 'id_imatge': int(match.group('id'))}
 
         # TODO: caldra inserir la informació en la BD
-        collection.update({"Dataset": dataset, "id": data["image_id"]},
-                      {"Dataset": dataset, "id": data["image_id"], "name": data["name"]}, upsert=True)
+        collection.update({"Dataset": dataset, "id": data["id_imatge"]},
+                      {"Dataset": dataset, "id": data["id_imatge"], "nom": data["nom"]}, upsert=True)
 
-    self.bd["Datasets"].insert_one({"name": dataset, "total": len(listImages)})
+    self.bd["Datasets"].insert_one({"nom": dataset, "total": len(listImages)})
     # load image annotation
     wd = dataDir + '/' + labels + '/'
     fileLabels = glob.glob(wd + '*' + labelsExt)
@@ -239,17 +239,17 @@ class mongoConnexion(nc.noConnexion):
             line = f.readline().rstrip("\n").rstrip("\r")
             while line:
                 if len(line) > 0:
-                    data = {'label': nom, 'image_id': int(line)}
+                    data = {'etiqueta': nom, 'id_imatge': int(line)}
 
                     # TODO: caldrà inserir les dades a la BD
-                    res = collection.find({"Dataset": dataset, "id": data["image_id"]})
+                    res = collection.find({"Dataset": dataset, "id": data["id_imatge"]})
                     if res.count() > 0:
                       for row in res:
-                        if "label" in row:
-                          label = row["label"] + [nom]
+                        if "etiqueta" in row:
+                          label = row["etiqueta"] + [nom]
                         else:
                           label = [nom]
-                        collection.update({"Dataset": dataset, "id": row["id"]},{"Dataset": dataset, "id": row["id"], "name": row["name"], "label": label}, upsert=True)
+                        collection.update({"Dataset": dataset, "id": row["id"]},{"Dataset": dataset, "id": row["id"], "nom": row["nom"], "etiqueta": label}, upsert=True)
                     #else:
                     #  label = [nom]
 
@@ -295,7 +295,7 @@ class mongoConnexion(nc.noConnexion):
       size = int(params['feat_size'])  # bytes to represent each float
       type = params['type']
 
-      collection = self.bd["Mostres"]
+      collection = self.bd["Dades"]
       for i in range(0, dims[0]):
           # cur.execute(None, {'image_id': i, 'layer': layer, 'features': Features[i] })
           bf = x[i * dims[1] * size:(i + 1) * size * dims[1]]
@@ -305,13 +305,13 @@ class mongoConnexion(nc.noConnexion):
           res = collection.find({"Dataset": dataset.lower(), "id": i + 1,"cnn": { "$exists" : "true"}})
           if res.count() > 0:
               record = collection.find({"Dataset": dataset.lower(), "id": i + 1,
-                                        "cnn": {"$elemMatch": {"name": featuresName, "layer": layer}}})
+                                        "cnn": {"$elemMatch": {"nom": featuresName, "capa": layer}}})
               if record.count() == 0:
                   collection.update({"Dataset": dataset.lower(), "id": i + 1},
-                            {"$push" : {"cnn":  {"name": featuresName, "layer": layer, "features": features } } } )
+                            {"$push" : {"cnn":  {"nom": featuresName, "capa": layer, "dades": features } } } )
           else:
               collection.update({"Dataset": dataset.lower(), "id": i + 1},
-                              {"$set": { "cnn": [ {"name": featuresName, "layer": layer, "features": features } ] }})
+                              {"$set": { "cnn": [ {"nom": featuresName, "capa": layer, "dades": features } ] }})
 
 
       print ("""{} features of scheme {} correctly inserted """.format(layer, featureSchema))

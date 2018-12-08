@@ -426,13 +426,14 @@ class oracleConnexion(nc.noConnexion):
         Caldra guardar la informació a la BD segons l'estructura que hagueu decidit
         """
         for row in features:
-            # TODO: insereu les dades
             id = row.id
             label = str(row.label)  # classe
             feature = str(row.feature)
             query = 'insert into UCI(ID,DADES,CLASSE) values (:1,:2,:3)'
             self.cursor.execute(query, (id,feature,label))
-
+        tipus = "vector"
+        query = 'insert into DATASETS(NOM,TOTAL,TIPUS) values (:1,:2,:3)'
+        self.cursor.execute(query, (nameDataset, id, tipus))
         self.commit()
 
     def insertImageDataset(self, dataset, fileName, params, labels='anno', imageExt='.jpg', labelsExt='.txt'):
