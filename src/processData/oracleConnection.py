@@ -419,10 +419,10 @@ class oracleConnexion(nc.noConnexion):
     """
     Comprovem si el nombre de classes del dataset està en params o no
     """
-    if "k" in params:
+    if "k" in datasetParams:
       # TODO: Haureu de guardar aquesta informació a la BD
-      print("k: {}".format(params["k"]))
-      k = params["k"]
+      print("k: {}".format(datasetParams["k"]))
+      k = datasetParams["k"]
     else:
       # TODO: Haureu de guardar la informació de la BD sense la inforamció de la K (numero de classes)
       print("Haureu de guardar la informació de la BD sense la inforamció de la K (numero de classes)")
@@ -454,8 +454,11 @@ class oracleConnexion(nc.noConnexion):
     """
     for row in features:
       # TODO: insereu les dades
+      id = row.id
+      label = row.label # classe
       feature = row.feature
-
+      #query = "insert into 'vector_de_caracteristiques' ('id','dades','classe') values({},{},{})".format(id,feature,label)
+      # self.cursor.execute(query).fetchone()
 
     self.commit()
 
