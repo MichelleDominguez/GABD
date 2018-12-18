@@ -315,7 +315,6 @@ class mongoConnexion(nc.noConnexion):
         :param paramsMethod: list of parameter names
         :return: idExperiment
         '''
-
         """inserim la informació dels experiments"""
         collection = self.bd["Experiments"]
 
@@ -411,7 +410,7 @@ class mongoConnexion(nc.noConnexion):
         numTotalOutliers = int(2 * round(conf[0] / 100.0 / 2.0 * numSamples)) + int(round(conf[1] / 100.0 * numSamples))
 
         collection = self.bd["Outliers"]
-
+        res = []
         if dataInfo["type"] == "vector":
             collection.find(filter_query)
             res = collection.find(filter_query)
@@ -421,7 +420,7 @@ class mongoConnexion(nc.noConnexion):
             res = []
             # TODO: SESSIÓ 15: Icarregueu els outliers dels datasets d'imatges  (MIRFLICKR)
 
-        numOutliers = res.count()
+        numOutliers = len(res)
         generateOutliersFlag = numTotalOutliers != numOutliers
         outliers = {}
 
