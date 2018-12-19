@@ -189,6 +189,7 @@ if __name__ == '__main__':
 
     for conf in confList:
         """Inicialitzem"""
+
         if method.upper() == "DMOD":
             od = DMOD(numViews)
         if method.upper() == "CMOD":

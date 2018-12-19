@@ -161,30 +161,32 @@ class mongoConnexion(nc.noConnexion):
         features = []
         id = 0
         labels = []
-        while line:
-            stringFeatures = line.split(",")
-            label = stringFeatures[label_pos]
-            stringFeatures.remove(label)
-            label = label.rstrip('\n')
-            feature = [float(x) for x in stringFeatures]
-            if len(feature) > 0:
-                features.append(fila(id=id, label=label, features=feature))
-                id = id + 1
+        existeix = self.exists(nameDataset)
+        if not existeix:
+            while line:
+                stringFeatures = line.split(",")
+                label = stringFeatures[label_pos]
+                stringFeatures.remove(label)
+                label = label.rstrip('\n')
+                feature = [float(x) for x in stringFeatures]
+                if len(feature) > 0:
+                    features.append(fila(id=id, label=label, features=feature))
+                    id = id + 1
 
-            line = f.readline().rstrip("\n").rstrip("\r")
-        f.close()
+                line = f.readline().rstrip("\n").rstrip("\r")
+            f.close()
 
-        """
-        Caldra guardar la informació a la BD segons l'estructura que hagueu decidit
-        """
-        collection = self.bd["Mostres"]
-        for row in features:
-            # TODO: insereu les dades
-            collection.update({"Dataset": nameDataset, "id": row.id},
-                              {"Dataset": nameDataset, "id": row.id, "features": row.features, "label": row.label},
-                              upsert=True)
+            """
+            Caldra guardar la informació a la BD segons l'estructura que hagueu decidit
+            """
+            collection = self.bd["Mostres"]
+            for row in features:
+                # TODO: insereu les dades
+                collection.update({"Dataset": nameDataset, "id": row.id},
+                                  {"Dataset": nameDataset, "id": row.id, "features": row.features, "label": row.label},
+                                  upsert=True)
 
-        self.bd["Datasets"].insert_one({"name": nameDataset, "total": id, "type": "vector"})
+            self.bd["Datasets"].insert_one({"name": nameDataset, "total": id, "type": "vector"})
 
     def insertImageDataset(self, dataset, fileName, params, labels='anno', imageExt='.jpg', labelsExt='.txt'):
         """
@@ -216,7 +218,7 @@ class mongoConnexion(nc.noConnexion):
             collection.update({"Dataset": dataset, "id": data["image_id"]},
                               {"Dataset": dataset, "id": data["image_id"], "name": data["name"]}, upsert=True)
 
-        self.bd["Datasets"].insert_one({"name": dataset, "total": len(listImages)})
+        self.bd["Datasets"].insert_one({"name": dataset, "total": len(listImages), "type": "image"})
         # load image annotation
         wd = dataDir + '/' + labels + '/'
         fileLabels = glob.glob(wd + '*' + labelsExt)
@@ -315,7 +317,6 @@ class mongoConnexion(nc.noConnexion):
         :param paramsMethod: list of parameter names
         :return: idExperiment
         '''
-
         """inserim la informació dels experiments"""
         collection = self.bd["Experiments"]
 
@@ -350,7 +351,6 @@ class mongoConnexion(nc.noConnexion):
         :param dataInfo:
         :return:
         """
-
         numViews = len(newFeatures)
 
         collection = self.bd["Outliers"]
@@ -358,11 +358,13 @@ class mongoConnexion(nc.noConnexion):
         for i in outliersGTIdx:
             # Hem de construir el vector de caracteristiques complet
             features = np.hstack([newFeatures[y][i].features for y in range(numViews)]).tolist()
-
+            res = collection.find({"features": features, "Dataset": nameDataset, "repeticio": repeticio,"conf": conf})
             if dataInfo["type"] == "vector":
-                print("Outlier de tipus vector")
-                collection.update({"features": newFeatures, "Dataset": nameDataset, "repeticio": repeticio,"conf": conf, "id": id})
-                id+=1
+                if res.count()>0:
+                    collection.update({"features": features, "Dataset": nameDataset, "repeticio": repeticio,"conf": conf, "id": id},{"features": features, "Dataset": nameDataset, "repeticio": repeticio,"conf": conf, "id": id})
+                else:
+                    collection.insert_one({"features": features, "Dataset": nameDataset, "repeticio": repeticio,"conf": conf, "id": id})
+                    id+=1
 
             if dataInfo["type"] == "image":
                 print("TODO:")
@@ -381,13 +383,26 @@ class mongoConnexion(nc.noConnexion):
         :param dataInfo:
         :return:
         """
+        print "A insertResults"
+        print "IDexperiment:"
+        print idExperiment
+        new_tpr=[]
+        for i in tpr:
+            new_tpr.append(i)
+        new_fpr=[]
+        for i in fpr:
+            new_fpr.append(i)
 
         collection = self.bd["Results"]
-
+        #idsita = ObjectId(idExperiment)
+        res = collection.find({"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc,"fpr": new_fpr,"tpr": new_tpr})
         if dataInfo["type"] == "vector":
             print("Results tipo vector")
-            collection.update(
-                {"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc, "fpr": fpr,"tpr": tpr})
+            if res.count()>0:
+                collection.update({"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc, "fpr": new_fpr,"tpr": new_tpr},
+                    {"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc, "fpr": new_fpr,"tpr": new_tpr})
+            else:
+                collection.insert_one({"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc, "fpr": new_fpr,"tpr": new_tpr})
 
         if dataInfo["type"] == "image":
             print("TODO:")
@@ -403,6 +418,7 @@ class mongoConnexion(nc.noConnexion):
         :param dataInfo:
         :return:
         """
+
         filter_query = {
             "Dataset": nameDataset,
             "repeticio": repeticio,
@@ -411,11 +427,10 @@ class mongoConnexion(nc.noConnexion):
         numTotalOutliers = int(2 * round(conf[0] / 100.0 / 2.0 * numSamples)) + int(round(conf[1] / 100.0 * numSamples))
 
         collection = self.bd["Outliers"]
-
+        res =[]
         if dataInfo["type"] == "vector":
             collection.find(filter_query)
             res = collection.find(filter_query)
-            # TODO: SESSIÓ 15: carregueu els outliers dels datasets de Vectors (UCI)
 
         if dataInfo["type"] == "image":
             res = []
@@ -503,7 +518,7 @@ class mongoConnexion(nc.noConnexion):
 
         collection = self.bd["Datasets"]
 
-        res = collection.find({"name": nameDataset.lower()}, {"type": 1})
+        res = collection.find({"name": nameDataset.lower()})
 
         if res.count() > 0:
             return res[0]["type"]
