@@ -207,7 +207,6 @@ if __name__ == '__main__':
             """.format(i))
 
             newFeatures, y, outliersGTIdx = od.prepareExperimentData(db, conf,  datasetName, dataInfo, i, settings={'numViews':numViews})
-
             idExperiment = db.insertExperiment(conf, i, method, paramsMethod)
 
             outliersIdx = od.detector(newFeatures, paramsMethod )
