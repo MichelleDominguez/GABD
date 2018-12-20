@@ -384,8 +384,6 @@ class mongoConnexion(nc.noConnexion):
         :return:
         """
         print "A insertResults"
-        print "IDexperiment:"
-        print idExperiment
         new_tpr=[]
         for i in tpr:
             new_tpr.append(i)
@@ -394,10 +392,8 @@ class mongoConnexion(nc.noConnexion):
             new_fpr.append(i)
 
         collection = self.bd["Results"]
-        #idsita = ObjectId(idExperiment)
         res = collection.find({"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc,"fpr": new_fpr,"tpr": new_tpr})
         if dataInfo["type"] == "vector":
-            print("Results tipo vector")
             if res.count()>0:
                 collection.update({"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc, "fpr": new_fpr,"tpr": new_tpr},
                     {"Dataset": nameDataset, "idExperiment": idExperiment, "auc": auc, "fpr": new_fpr,"tpr": new_tpr})

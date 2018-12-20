@@ -409,6 +409,12 @@ class oracleConnexion(nc.noConnexion):
 
         features = []
         id = 0
+        query = 'select MAX(TOTAL) from DATASETS'
+
+        result = self.cursor.execute(query).fetchone()
+        if result is not None:
+            id = result[0] + 1
+
         labels = []
         while line:
             stringFeatures = line.split(",")
@@ -425,15 +431,18 @@ class oracleConnexion(nc.noConnexion):
         """
         Caldra guardar la informació a la BD segons l'estructura que hagueu decidit
         """
+
+        tipus = "vector"
+        query = 'insert into DATASETS(NAME,TOTAL,TYPE) values (:1,:2,:3)'
+        self.cursor.execute(query, (nameDataset, id, tipus))
         for row in features:
             id = row.id
             label = str(row.label)  # classe
             feature = str(row.feature)
-            query = 'insert into UCI(ID,DADES,CLASSE) values (:1,:2,:3)'
-            self.cursor.execute(query, (id,feature,label))
-        tipus = "vector"
-        query = 'insert into DATASETS(NOM,TOTAL,TIPUS) values (:1,:2,:3)'
-        self.cursor.execute(query, (nameDataset, id, tipus))
+            query = 'insert into VECTORS(ID,DADES,ID_DATASET,CLASSE) values (:1,:2,:3,:4)'
+            self.cursor.execute(query, (id,feature,nameDataset,label))
+        query = 'update DATASETS set TOTAL = '+str(id)+' where NAME = \''+nameDataset+'\''
+        self.cursor.execute(query)
         self.commit()
 
     def insertImageDataset(self, dataset, fileName, params, labels='anno', imageExt='.jpg', labelsExt='.txt'):
